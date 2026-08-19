@@ -1,0 +1,12 @@
+resources:
+  apps:
+    aigw_app:
+      name: "aigw-selfservice-${bundle.target}"
+      description: "Governed self-service AI Gateway endpoint provisioning"
+      source_code_path: ../src/app
+      resources:
+        - name: "sql-warehouse"
+          description: "Warehouse for governance-table reads and cost queries"
+          sql_warehouse:
+            id: ${var.warehouse_id}
+            permission: "CAN_USE"

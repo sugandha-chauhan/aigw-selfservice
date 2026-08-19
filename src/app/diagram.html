@@ -1,0 +1,308 @@
+<title>AI Gateway Tag Flow</title>
+<style>
+  :root {
+    --ground: #f5f7f9; --surface: #ffffff; --surface-2: #eef1f5; --border: #d9dee6;
+    --ink: #171c26; --ink-2: #444d5e; --ink-3: #6b7486;
+    --accent: #0c8a8f; --accent-ink: #075e62; --accent-soft: #e0f0f0;
+    --use: #6a4bc0; --use-ink: #4a3092; --use-soft: #ebe6f8;
+    --store: #227a4e; --store-ink: #1a5e3c; --store-soft: #e4f2ea;
+    --gate: #b1650a; --gate-ink: #8a4e08; --gate-soft: #fbeede;
+    --danger: #b5312b; --danger-soft: #f8e3e1;
+    --warn: #b1650a;
+    --code-bg: #f0f3f7;
+    --shadow: 0 1px 2px rgba(20,28,45,.06), 0 8px 22px rgba(20,28,45,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0f131a; --surface: #161b24; --surface-2: #1d232e; --border: #2b323e;
+      --ink: #eef1f6; --ink-2: #b6becc; --ink-3: #808a9c;
+      --accent: #34c2c7; --accent-ink: #7fd8db; --accent-soft: #123437;
+      --use: #a58bf0; --use-ink: #c3b2f7; --use-soft: #221a3d;
+      --store: #64c48d; --store-ink: #8ad6ab; --store-soft: #12291d;
+      --gate: #e2a24a; --gate-ink: #eab668; --gate-soft: #33260f;
+      --danger: #e57a72; --danger-soft: #34140f;
+      --warn: #e2a24a;
+      --code-bg: #0c1017;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 26px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0f131a; --surface: #161b24; --surface-2: #1d232e; --border: #2b323e;
+    --ink: #eef1f6; --ink-2: #b6becc; --ink-3: #808a9c;
+    --accent: #34c2c7; --accent-ink: #7fd8db; --accent-soft: #123437;
+    --use: #a58bf0; --use-ink: #c3b2f7; --use-soft: #221a3d;
+    --store: #64c48d; --store-ink: #8ad6ab; --store-soft: #12291d;
+    --gate: #e2a24a; --gate-ink: #eab668; --gate-soft: #33260f;
+    --danger: #e57a72; --danger-soft: #34140f;
+    --warn: #e2a24a;
+    --code-bg: #0c1017;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 26px rgba(0,0,0,.4);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: clamp(1.4rem,4vw,3rem) clamp(1rem,4vw,2rem) 4rem; }
+  code, .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .eyebrow { font-family: ui-monospace, monospace; font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; }
+  h1 { font-size: clamp(1.6rem,3.6vw,2.2rem); letter-spacing: -.02em; margin: .45rem 0 .3rem; text-wrap: balance; }
+  .sub { color: var(--ink-2); max-width: 66ch; margin: 0; font-size: 1rem; }
+  .verified { display: inline-flex; align-items: center; gap: .4rem; margin-top: 1rem; font-size: .78rem;
+    background: var(--store-soft); color: var(--store-ink); border: 1px solid color-mix(in srgb, var(--store) 35%, transparent);
+    padding: .35rem .7rem; border-radius: 999px; font-weight: 600; }
+
+  .phase { margin-top: 2.4rem; }
+  .phase-head { display: flex; align-items: baseline; gap: .7rem; margin-bottom: 1.1rem; flex-wrap: wrap; }
+  .phase-head .tag { font-family: ui-monospace, monospace; font-weight: 700; font-size: .8rem; padding: .2rem .55rem; border-radius: 6px; }
+  .phase-head h2 { font-size: 1.12rem; margin: 0; letter-spacing: -.01em; }
+  .p1 .tag { background: var(--accent-soft); color: var(--accent-ink); }
+  .p2 .tag { background: var(--use-soft); color: var(--use-ink); }
+  .p3 .tag { background: var(--store-soft); color: var(--store-ink); }
+  .p4 .tag { background: var(--gate-soft); color: var(--gate-ink); }
+
+  .flow { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; }
+  .node { flex: 1 1 0; min-width: 150px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 11px; padding: .85rem .9rem; box-shadow: var(--shadow); position: relative; }
+  .node .role { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); font-weight: 700; }
+  .node .name { font-weight: 650; font-size: .95rem; margin: .2rem 0 .3rem; }
+  .node .desc { font-size: .8rem; color: var(--ink-2); }
+  .node .desc code { background: var(--code-bg); border-radius: 4px; padding: .05em .3em; font-size: .92em; color: var(--accent-ink); }
+  .arrow { flex: 0 0 34px; display: grid; place-items: center; color: var(--ink-3); font-size: 1.3rem; }
+  .arrow span { transform: translateY(-2px); }
+  .p1 .node.hl { border-color: var(--accent); border-width: 1.5px; }
+  .p2 .node.hl { border-color: var(--use); border-width: 1.5px; }
+  .node.gate { border-color: var(--gate); border-width: 1.5px; background: var(--gate-soft); }
+  .node.gate .role { color: var(--gate-ink); }
+  .node.job { border-color: var(--gate); border-width: 1.5px; }
+  .node.danger { border-color: var(--danger); border-width: 1.5px; background: var(--danger-soft); }
+  .node.danger .role { color: var(--danger); }
+
+  .tagpill-row { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
+  .tagpill { font-family: ui-monospace, monospace; font-size: .7rem; background: var(--accent-soft); color: var(--accent-ink);
+    border-radius: 5px; padding: .12rem .45rem; border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+  .tagpill.ttl { background: var(--gate-soft); color: var(--gate-ink); border-color: color-mix(in srgb, var(--gate) 35%, transparent); }
+
+  .gov { margin-top: 1rem; background: var(--gate-soft); border: 1px solid color-mix(in srgb,var(--gate) 35%,transparent);
+    border-radius: 11px; padding: .85rem 1rem; }
+  .gov .lbl { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gate-ink); }
+  .gov ol { margin: .5rem 0 0; padding-left: 1.15rem; }
+  .gov li { font-size: .84rem; color: var(--ink-2); margin: .3rem 0; }
+  .gov li b { color: var(--ink); }
+  .gov code { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: .05em .3em; font-size: .9em; color: var(--gate-ink); }
+  .deny { color: var(--danger); font-weight: 600; }
+
+  .gw { margin-top: 1rem; background: var(--use-soft); border: 1px dashed color-mix(in srgb,var(--use) 45%,transparent);
+    border-radius: 11px; padding: .75rem .95rem; }
+  .gw .lbl { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--use-ink); }
+  .gw .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .45rem; }
+  .gw .chip { font-size: .78rem; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: .28rem .55rem; color: var(--ink-2); }
+
+  .stores { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1rem; }
+  .store { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+  .store .top { padding: .85rem 1rem; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  .store .top .kv { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--store-ink); }
+  .store .top .loc { font-family: ui-monospace, monospace; font-size: .82rem; color: var(--ink); font-weight: 600; margin-top: .2rem; word-break: break-all; }
+  .store .top .note { font-size: .76rem; color: var(--ink-3); margin-top: .25rem; }
+  .store .body { padding: .8rem 1rem 1rem; display: flex; flex-direction: column; gap: .5rem; flex: 1; }
+  .store .how { font-size: .78rem; color: var(--ink-2); }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 9px; padding: .7rem .8rem; overflow-x: auto; font-size: .74rem; line-height: 1.55; margin: 0; }
+  pre code { color: var(--ink-2); }
+  .cmt { color: var(--ink-3); }
+  .kw { color: var(--accent-ink); }
+  .lag { display: inline-block; margin-top: .1rem; font-size: .72rem; color: var(--warn); font-weight: 600; }
+
+  .legend { margin-top: 2.4rem; display: flex; flex-wrap: wrap; gap: .8rem 1.4rem; padding-top: 1.2rem; border-top: 1px solid var(--border); font-size: .8rem; color: var(--ink-3); }
+  .legend b { color: var(--ink-2); }
+  footer { margin-top: 1.6rem; color: var(--ink-3); font-size: .78rem; }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Unity AI Gateway · self-service provisioning</div>
+  <h1>How the request flows, and where the tags live</h1>
+  <p class="sub">A user requests an endpoint, membership is verified against their Entra group, they use it, tags land in three queryable places, and a daily job retires it after 30 days. Tables, columns, and calls are verified against <b>e2-demo-field-eng</b>; the governance gate and cleanup job are the recommended target design.</p>
+  <div class="verified">✓ Runtime paths verified on live workspace · governance gate + cleanup = target design</div>
+
+  <!-- PHASE 1 -->
+  <div class="phase p1">
+    <div class="phase-head"><span class="tag">1 · REQUEST</span><h2>Governed self-service provisioning</h2></div>
+    <div class="flow">
+      <div class="node">
+        <div class="role">Actor</div>
+        <div class="name">Team member</div>
+        <div class="desc">Opens the app; identity from <code>x-forwarded-email</code>.</div>
+      </div>
+      <div class="arrow"><span>→</span></div>
+      <div class="node">
+        <div class="role">Databricks App</div>
+        <div class="name">Self-service form</div>
+        <div class="desc">Selects team (e.g. <code>data-science-rnd</code>) + project.</div>
+      </div>
+      <div class="arrow"><span>→</span></div>
+      <div class="node gate">
+        <div class="role">Governance gate</div>
+        <div class="name">Verify Entra membership</div>
+        <div class="desc">Is the user in the Entra/SCIM group for the selected team? If not → <span class="deny">deny</span>.</div>
+      </div>
+      <div class="arrow"><span>→</span></div>
+      <div class="node hl">
+        <div class="role">Serving API</div>
+        <div class="name">Create endpoint</div>
+        <div class="desc"><code>POST /api/2.0/serving-endpoints</code> with <code>tags</code> + <code>ai_gateway</code>.</div>
+        <div class="tagpill-row">
+          <span class="tagpill">cost_center</span><span class="tagpill">team</span><span class="tagpill">project</span><span class="tagpill ttl">delete_after</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gov">
+      <div class="lbl">Governance & Unity Catalog privileges enforced at this step</div>
+      <ol>
+        <li><b>Entra → SCIM group check.</b> The team a user picks maps to an Entra ID group synced into Databricks via SCIM. Provisioning is allowed only if the caller is a member — e.g. selecting <code>data-science-rnd</code> requires membership in the <code>data-science-rnd</code> Entra group. Verify with the SCIM <code>Groups</code> / current-user membership API before the create call.</li>
+        <li><b>Endpoint ACLs on create.</b> Grant the team's group <code>CAN_QUERY</code> and the requester <code>CAN_MANAGE</code> (<code>PATCH /api/2.0/permissions/serving-endpoints/{id}</code>) so the endpoint is visible and usable to the right people — not just the app's service principal.</li>
+        <li><b>UC-aligned attribution.</b> The <code>cost_center</code> / <code>team</code> / <code>project</code> tags mirror the group's cost center from the governed UC table, so spend and access share one identity.</li>
+        <li><b>Lifecycle tag.</b> A <code>delete_after</code> (created + 30 days) tag is stamped for the cleanup job in Phase 4.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase p2">
+    <div class="phase-head"><span class="tag">2 · USE</span><h2>Calling the endpoint</h2></div>
+    <div class="flow">
+      <div class="node">
+        <div class="role">Client</div>
+        <div class="name">App / SDK / curl</div>
+        <div class="desc">OpenAI-compatible chat request.</div>
+      </div>
+      <div class="arrow"><span>→</span></div>
+      <div class="node hl">
+        <div class="role">Endpoint</div>
+        <div class="name">Unity AI Gateway</div>
+        <div class="desc"><code>POST /serving-endpoints/{name}/invocations</code></div>
+      </div>
+      <div class="arrow"><span>→</span></div>
+      <div class="node">
+        <div class="role">Provider</div>
+        <div class="name">Model proxy</div>
+        <div class="desc"><code>databricks-model-serving</code> → a Foundation Model.</div>
+      </div>
+      <div class="arrow"><span>→</span></div>
+      <div class="node">
+        <div class="role">Response</div>
+        <div class="name">Completion</div>
+        <div class="desc">Tokens returned; usage recorded.</div>
+      </div>
+    </div>
+    <div class="gw">
+      <div class="lbl">What the gateway enforces / records on every call</div>
+      <div class="chips">
+        <span class="chip">Rate limit (per-team)</span>
+        <span class="chip">Usage tracking → system tables</span>
+        <span class="chip">Optional PII guardrails</span>
+        <span class="chip">Requester identity + status code</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase p3">
+    <div class="phase-head"><span class="tag">3 · STORE &amp; RETRIEVE</span><h2>Where the tags live — and how to read them</h2></div>
+    <div class="stores">
+      <div class="store">
+        <div class="top">
+          <div class="kv">A · Source of truth</div>
+          <div class="loc">The endpoint object</div>
+          <div class="note">Set at creation; real-time; authoritative.</div>
+        </div>
+        <div class="body">
+          <div class="how">The <code>tags[]</code> array on the serving endpoint. Retrieve via REST / CLI / SDK, or the endpoint page in the UI.</div>
+          <pre><code><span class="cmt"># CLI / REST — returns tags immediately</span>
+databricks api get \
+ /api/2.0/serving-endpoints/<span class="kw">$NAME</span>
+<span class="cmt"># → tags: [{cost_center: CC-8820},</span>
+<span class="cmt">#          {delete_after: 2026-09-17}, …]</span></code></pre>
+        </div>
+      </div>
+
+      <div class="store">
+        <div class="top">
+          <div class="kv">B · Cost attribution</div>
+          <div class="loc">system.billing.usage</div>
+          <div class="note">Tags copied into <code>custom_tags</code>; keyed by <code>usage_metadata.endpoint_name</code>.</div>
+        </div>
+        <div class="body">
+          <div class="how">Endpoint tags propagate into the <code>custom_tags</code> map for chargeback. <span class="lag">⏱ billing data lags ~hours</span></div>
+          <pre><code><span class="kw">SELECT</span> custom_tags['cost_center'],
+       custom_tags['team'],
+       <span class="kw">SUM</span>(usage_quantity) <span class="kw">AS</span> dbus
+<span class="kw">FROM</span> system.billing.usage
+<span class="kw">WHERE</span> billing_origin_product=
+      'MODEL_SERVING'
+  <span class="kw">AND</span> usage_unit='DBU'
+<span class="kw">GROUP BY</span> 1,2 <span class="kw">ORDER BY</span> dbus <span class="kw">DESC</span></code></pre>
+        </div>
+      </div>
+
+      <div class="store">
+        <div class="top">
+          <div class="kv">C · Usage tracking</div>
+          <div class="loc">system.serving.*</div>
+          <div class="note">Per-request usage. Tags are <b>joined in</b>, not stored here.</div>
+        </div>
+        <div class="body">
+          <div class="how"><code>endpoint_usage</code> (requester, tokens, status, <code>usage_context</code>) joins <code>served_entities</code> on <code>served_entity_id</code> → <code>endpoint_name</code>.</div>
+          <pre><code><span class="kw">SELECT</span> e.endpoint_name, u.requester,
+       u.status_code, u.output_token_count
+<span class="kw">FROM</span> system.serving.endpoint_usage u
+<span class="kw">JOIN</span> system.serving.served_entities e
+  <span class="kw">USING</span> (served_entity_id)
+<span class="kw">WHERE</span> e.endpoint_name = <span class="kw">$NAME</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase p4">
+    <div class="phase-head"><span class="tag">4 · LIFECYCLE</span><h2>Automatic 30-day cleanup</h2></div>
+    <div class="flow">
+      <div class="node job">
+        <div class="role">Databricks Job · daily cron</div>
+        <div class="name">Cleanup job</div>
+        <div class="desc">Scheduled once/day (e.g. 02:00). Runs the sweep below.</div>
+      </div>
+      <div class="arrow"><span>→</span></div>
+      <div class="node">
+        <div class="role">Scan</div>
+        <div class="name">List endpoints + tags</div>
+        <div class="desc">Read <code>delete_after</code> off every serving endpoint.</div>
+      </div>
+      <div class="arrow"><span>→</span></div>
+      <div class="node">
+        <div class="role">Evaluate</div>
+        <div class="name">Past expiry?</div>
+        <div class="desc"><code>today &gt; delete_after</code> → the 31st day onward.</div>
+      </div>
+      <div class="arrow"><span>→</span></div>
+      <div class="node danger">
+        <div class="role">Act</div>
+        <div class="name">Delete endpoint</div>
+        <div class="desc"><code>DELETE /serving-endpoints/{name}</code>. Skip if still within 30 days.</div>
+      </div>
+    </div>
+    <div class="gov">
+      <div class="lbl">Cleanup logic (target design — a scheduled Databricks Job)</div>
+      <pre><code><span class="cmt"># runs daily; deletes endpoints whose 30-day TTL has passed</span>
+<span class="kw">for</span> ep <span class="kw">in</span> list_serving_endpoints():
+    d = ep.tags.get(<span class="kw">"delete_after"</span>)          <span class="cmt"># e.g. 2026-09-17</span>
+    <span class="kw">if</span> d <span class="kw">and</span> date.today() &gt; date.fromisoformat(d):
+        delete_serving_endpoint(ep.name)          <span class="cmt"># day 31 → removed</span></code></pre>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><b>Gate</b> — Entra/SCIM membership decides who may provision for a team.</span>
+    <span><b>Store A/B/C</b> — live truth · cost rollup · request usage.</span>
+    <span><b>Lifecycle</b> — <code>delete_after</code> tag + daily job = automatic 30-day retirement.</span>
+  </div>
+  <footer>Verified 2026-08-18 on e2-demo-field-eng · runtime paths (create, use, retrieval) confirmed live · Entra membership gate + cleanup job shown as the recommended production design.</footer>
+</div>

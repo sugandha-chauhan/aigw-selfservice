@@ -1,0 +1,23 @@
+command:
+  - "streamlit"
+  - "run"
+  - "app.py"
+
+env:
+  # SQL warehouse bound via the app resource (see resources/app.yml)
+  - name: DATABRICKS_WAREHOUSE_ID
+    valueFrom: "sql-warehouse"
+
+  # Portable config — change these to match your workspace conventions.
+  - name: AIGW_CATALOG
+    value: "main"
+  - name: AIGW_SCHEMA
+    value: "aigw_selfservice"
+  - name: AIGW_SECRET_SCOPE
+    value: "aigw_selfservice"
+  - name: AIGW_SECRET_KEY
+    value: "dbx_token"
+  - name: AIGW_ENDPOINT_PREFIX
+    value: "aigw"
+  - name: AIGW_TTL_DAYS
+    value: "30"

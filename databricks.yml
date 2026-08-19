@@ -1,0 +1,41 @@
+bundle:
+  name: aigw-selfservice
+
+include:
+  - resources/*.yml
+
+variables:
+  warehouse_id:
+    description: "SQL warehouse ID the app uses for governance-table reads + cost queries."
+    # Find one with:  databricks warehouses list
+    # or set per-target below.
+    default: ""
+  catalog:
+    description: "Unity Catalog catalog for the governance schema."
+    default: "main"
+  schema:
+    description: "Schema that holds group_cost_center + the retrieval views."
+    default: "aigw_selfservice"
+  app_sp:
+    description: "App service principal id (optional) — set after first deploy to auto-grant."
+    default: ""
+
+targets:
+  dev:
+    default: true
+    mode: development
+    # workspace:
+    #   host: https://<your-workspace>.cloud.databricks.com
+    variables:
+      warehouse_id: ""     # <-- REQUIRED: set your warehouse id (or pass --var)
+      catalog: "main"
+      schema: "aigw_selfservice"
+
+  prod:
+    mode: production
+    # workspace:
+    #   host: https://<your-prod-workspace>.cloud.databricks.com
+    variables:
+      warehouse_id: ""
+      catalog: "main"
+      schema: "aigw_selfservice"

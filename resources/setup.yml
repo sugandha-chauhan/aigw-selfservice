@@ -1,0 +1,13 @@
+resources:
+  jobs:
+    setup_uc:
+      name: "[${bundle.target}] aigw-selfservice setup"
+      tasks:
+        - task_key: create_uc_objects
+          notebook_task:
+            notebook_path: ../src/setup/setup_uc.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              app_sp: "${var.app_sp}"
+      # Serverless job compute — no cluster config needed.
