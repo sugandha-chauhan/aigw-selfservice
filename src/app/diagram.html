@@ -118,7 +118,7 @@
 <div class="wrap">
   <div class="eyebrow">Unity AI Gateway · self-service provisioning</div>
   <h1>How the request flows, and where the tags live</h1>
-  <p class="sub">A user requests an endpoint, membership is verified against their Entra group, they use it, tags land in three queryable places, and a daily job retires it after 30 days. Tables, columns, and calls are verified against <b>e2-demo-field-eng</b>; the governance gate and cleanup job are the recommended target design.</p>
+  <p class="sub">A user requests an endpoint, membership is verified against their Entra group, they use it, tags land in three queryable places, and a daily job retires it after 30 days. Tables, columns, and calls are verified against a live Databricks workspace; the governance gate and cleanup job are the recommended target design.</p>
   <div class="verified">✓ Runtime paths verified on live workspace · governance gate + cleanup = target design</div>
 
   <!-- PHASE 1 -->
@@ -313,5 +313,5 @@ databricks api get \
     <span><b>Store A/B/C</b> — live truth · cost rollup · request usage.</span>
     <span><b>Lifecycle</b> — <code>delete_after</code> tag + daily job = automatic 30-day retirement.</span>
   </div>
-  <footer>Verified 2026-08-18 on e2-demo-field-eng · runtime paths (create, use, retrieval) confirmed live · Entra membership gate + cleanup job shown as the recommended production design.</footer>
+  <footer>Runtime paths (create, use, retrieval) verified on a live Databricks workspace · Entra membership gate + cleanup job shown as the recommended production design.</footer>
 </div>

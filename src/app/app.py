@@ -452,7 +452,7 @@ with tab_use:
                 st.json(resp)
                 if code == 401:
                     st.caption(
-                        "401 = the proxy token in secret `schauhan_aigw_demo/dbx_token` "
+                        f"401 = the proxy token in secret `{SECRET_SCOPE}/{SECRET_KEY}` "
                         "is missing/expired. Refresh it to enable live inference."
                     )
         with st.expander("📋 The equivalent call your teams would make"):
