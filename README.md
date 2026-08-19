@@ -10,6 +10,55 @@ Ships as a **Databricks Asset Bundle (DAB)** — deploy with a couple of command
 
 ---
 
+## Architecture
+
+```mermaid
+flowchart TD
+    U["Team member"] --> APP["Self-service app"]
+
+    subgraph P1["1 · Request — governed self-service"]
+        APP --> GATE{"OBO check: is the user in<br/>the selected team's Entra group?<br/>(SCIM Me via caller's token)"}
+        GATE -->|no| DENY["Deny"]
+        GATE -->|yes| CREATE["Create endpoint<br/>tags: cost_center, team,<br/>project, delete_after"]
+    end
+
+    CREATE --> EP(["Unity AI Gateway endpoint"])
+
+    subgraph P2["2 · Use"]
+        C["Client / SDK / curl"] --> EP
+        EP -->|"rate limit · usage tracking · guardrails"| PROXY["databricks-model-serving proxy"]
+        PROXY --> FM["Foundation Model"]
+    end
+
+    subgraph P3["3 · Where the tags live — and how to read them"]
+        A["A · endpoint object<br/>GET /serving-endpoints — source of truth"]
+        B["B · system.billing.usage.custom_tags<br/>cost attribution (~hrs lag)"]
+        Ct["C · system.serving.*<br/>per-request usage (tags joined in)"]
+    end
+    EP --> A
+    EP --> B
+    EP --> Ct
+
+    subgraph P4["4 · Lifecycle — auto 30-day cleanup"]
+        JOB["Daily job"] --> SCAN["Read delete_after tag"]
+        SCAN --> CHK{"today &gt; delete_after?"}
+        CHK -->|"yes — day 31"| DEL["Delete endpoint"]
+        CHK -->|no| KEEP["Keep"]
+    end
+    EP -.-> JOB
+
+    classDef gate fill:#fbeede,stroke:#b1650a,color:#5c3606;
+    classDef danger fill:#f8e3e1,stroke:#b5312b,color:#6b1a16;
+    class GATE gate;
+    class DENY,DEL danger;
+```
+
+> The **OBO membership gate** and the **daily cleanup job** are the recommended production
+> design; the runtime paths (create → use → tag retrieval → cost) are fully implemented.
+> An interactive version is in the app's **Architecture** tab (`src/app/diagram.html`).
+
+---
+
 ## What's in the box
 
 ```
