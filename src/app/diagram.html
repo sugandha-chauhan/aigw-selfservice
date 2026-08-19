@@ -138,9 +138,9 @@
       </div>
       <div class="arrow"><span>→</span></div>
       <div class="node gate">
-        <div class="role">Governance gate</div>
+        <div class="role">Governance gate · OBO</div>
         <div class="name">Verify Entra membership</div>
-        <div class="desc">Is the user in the Entra/SCIM group for the selected team? If not → <span class="deny">deny</span>.</div>
+        <div class="desc">App uses the caller's <b>on-behalf-of</b> token to read <i>their</i> groups (SCIM <code>Me</code>). Not in the selected team's group → <span class="deny">deny</span>.</div>
       </div>
       <div class="arrow"><span>→</span></div>
       <div class="node hl">
@@ -156,11 +156,20 @@
     <div class="gov">
       <div class="lbl">Governance & Unity Catalog privileges enforced at this step</div>
       <ol>
-        <li><b>Entra → SCIM group check.</b> The team a user picks maps to an Entra ID group synced into Databricks via SCIM. Provisioning is allowed only if the caller is a member — e.g. selecting <code>data-science-rnd</code> requires membership in the <code>data-science-rnd</code> Entra group. Verify with the SCIM <code>Groups</code> / current-user membership API before the create call.</li>
+        <li><b>On-behalf-of (OBO) membership check.</b> The app takes the signed-in user's <code>x-forwarded-access-token</code> and calls SCIM <code>Me</code> as <i>that user</i> (not the app's service principal) to read their real group memberships. It offers only the groups that are <i>both</i> in the governed mapping table and one the caller belongs to — e.g. <code>data-science-rnd</code> is selectable only if the user is in the <code>data-science-rnd</code> Entra group. Works the same whether groups arrive via classic SCIM or Automatic Identity Management (AIM).</li>
         <li><b>Endpoint ACLs on create.</b> Grant the team's group <code>CAN_QUERY</code> and the requester <code>CAN_MANAGE</code> (<code>PATCH /api/2.0/permissions/serving-endpoints/{id}</code>) so the endpoint is visible and usable to the right people — not just the app's service principal.</li>
         <li><b>UC-aligned attribution.</b> The <code>cost_center</code> / <code>team</code> / <code>project</code> tags mirror the group's cost center from the governed UC table, so spend and access share one identity.</li>
         <li><b>Lifecycle tag.</b> A <code>delete_after</code> (created + 30 days) tag is stamped for the cleanup job in Phase 4.</li>
       </ol>
+      <pre><code><span class="cmt"># On-behalf-of: authorize with the CALLER's token, not the app SP</span>
+token = headers[<span class="kw">"x-forwarded-access-token"</span>]
+me    = GET <span class="kw">/api/2.0/preview/scim/v2/Me</span>   <span class="cmt"># Authorization: Bearer &lt;token&gt;</span>
+user_groups = {g.display <span class="kw">for</span> g <span class="kw">in</span> me.groups}
+allowed     = user_groups &amp; mapping_table_groups     <span class="cmt"># intersection</span>
+<span class="kw">if</span> selected_team <span class="kw">not in</span> allowed:
+    deny()                                          <span class="cmt"># user isn't in that team's group</span>
+<span class="cmt"># prereqs: user authorization enabled on the app + `iam` scope</span>
+<span class="cmt"># caveat: nested-group members don't resolve (SCIM & AIM alike)</span></code></pre>
     </div>
   </div>
 
